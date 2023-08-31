@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Questions</title>
+  <h1 style="text-align: center; color: #e60b80;"> Quiz Questions </h1>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #a69be0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 50vh;
+    }
+    
+    #question-container {
+      background-color: #dfa6a6;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    
+    ul li {
+      margin-bottom: 10px;
+    }
+    
+    label {
+      cursor: pointer;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 10px;
+    }
+    
+    #next-button:hover {
+      background-color: #0056b3;
+    }
+    
+    #result-message p {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="question-container" class="question-container"></div>
+  <div class="button-container">
+  <button id="submit-button" class="submit-button">Submit</button>  
+  <button id="next-button" class="next-button">Next</button>
+  </div>
+
+  <div id="result-message" class="result-message"></div> 
+  <div id="timer"></div>
+
+  <script>
+    // Retrieve saved questions from sessionStorage
+    const savedQuestions = JSON.parse(sessionStorage.getItem('quizQuestions'));
+    console.log(savedQuestions);
+
+    let currentQuestionIndex = 0; // Index of the current question
+
+    const questionContainer = document.getElementById('question-container');
+    const resultMessageContainer = document.getElementById('result-message');
+    const submitButton = document.getElementById('submit-button');
+    const nextButton = document.getElementById('next-button');
+   
+    let timerInterval;
+    let timerDisplay;
+    function startTimer() {
+     let seconds = 20;
+     const timerDisplay = document.getElementById('timer');
+
+     function updateTime() {
+       timerDisplay.textContent = `Time left:  ${seconds} seconds`;
+
+       if (seconds === 0) {
+         clearInterval(timerInterval);
+
+         const correctAnswer = savedQuestions[currentQuestionIndex].correct_answer;
+         const optionsContainer = document.querySelectorAll('input[name="option"]');
+         const lastOptionIndex = optionsContainer.length - 1;
+         const lastOptionLabel = document.querySelector(`label[for="option${lastOptionIndex}"]`);
+         lastOptionLabel.innerHTML += `<br><br>(Correct Answer: ${correctAnswer})`;
+
+
+
+         resultMessageContainer.innerHTML = "<p>Time's up! You didn't answer in time.</p>";
+         nextButton.disabled = false;
+         submitButton.disabled = true;
+        }
+
+       seconds--;
+      }
+
+     timerInterval = setInterval(updateTime, 1000);
+   }
+   function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function displayCurrentQuestion() {
+      console.log('Displaying question:', currentQuestionIndex);
+      const question = savedQuestions[currentQuestionIndex];
+      const questionText = question.question;
+      const options = question.incorrect_answers.concat(question.correct_answer);
+      timerDisplay = document.getElementById('timer');
+
+      const shuffledOptions = shuffleArray(options);
+
+      // Create a div element to display the question and shuffled options
+      questionContainer.innerHTML = `
+        <p>Question ${currentQuestionIndex + 1}: ${questionText}</p>
+        <ul>
+          ${shuffledOptions.map((option, index) => `
+            <li>
+            <input type="radio" name="option" id="option${index}" value="${option}">
+            <label for="option${index}">${option}</label>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      
+      submitButton.disabled = false;
+      nextButton.disabled = true;
+      resultMessageContainer.innerHTML = '';
+      startTimer(); // Call this function to start the timer after displaying the question
+    }
+
+    let correctAnswers=0;
+    function submitAnswer() {
+      const selectedOption = document.querySelector('input[name="option"]:checked');
+      
+      if (selectedOption) {
+        const selectedAnswer = selectedOption.value;
+        const correctAnswer = savedQuestions[currentQuestionIndex].correct_answer;
+        const options = savedQuestions[currentQuestionIndex].incorrect_answers.concat(correctAnswer); // Store options in an array
+
+        const isCorrect = selectedAnswer === correctAnswer;
+        const resultMessage = isCorrect ? 'Correct!' : 'Incorrect!';
+        resultMessageContainer.innerHTML = `<p>${resultMessage}</p>`;
+        
+        if(isCorrect){
+          correctAnswers++; //Increment the count of correctAnswers
+        }
+
+        const optionsContainer = document.querySelectorAll('input[name="option"]');
+        const correctAnswerIndex = options.indexOf(correctAnswer);
+
+        optionsContainer.forEach((option, index) => {
+        const label = document.querySelector(`label[for="option${index}"]`);
+        if (index === correctAnswerIndex) {
+        label.innerHTML+=`<br><br>(Correct Answer:${correctAnswer})`;
+        }
+        });
+
+      }   
+      else {
+       resultMessageContainer.innerHTML = '<p>Please select an answer.</p>';
+       return;
+      }
+      
+      clearInterval(timerInterval); //pause the timer
+      nextButton.disabled = false;
+      submitButton.disabled = true;
+    }
+
+    function showScore() {
+     questionContainer.innerHTML = `<p>Your score: ${correctAnswers} out of ${savedQuestions.length}</p>`;
+     resultMessageContainer.innerHTML = ''; // Clear the result message
+     submitButton.disabled = true;
+     nextButton.disabled = true;
+    }
+
+    function goToNextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < savedQuestions.length) {
+        displayCurrentQuestion();
+      } 
+      else {
+         resultMessageContainer.innerHTML = '<p>No more questions.</p>';
+         nextButton.disabled = true;
+         submitButton.disabled = true;
+         showScore(); // Display the score at the end
+         timerDisplay.style.display = 'none';
+      
+        }
+    }
+
+    submitButton.addEventListener('click', submitAnswer);
+    nextButton.addEventListener('click', goToNextQuestion);
+
+    // Display the first question
+    displayCurrentQuestion();
+  </script>
+</body>
+</html>

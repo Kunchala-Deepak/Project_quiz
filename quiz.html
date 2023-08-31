@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Quiz App</title>
+  <link rel="stylesheet" type="text/css" href="quiz-style.css">
+  
+</head>
+
+<body>
+  <div class="container">
+    <h1>Quiz App</h1>
+    <form id="registration-form" >
+      <input type="text" id="user-name" placeholder="UserName" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <div id="categorys">Select Category </div>
+      <br/>
+      <input type="radio" id="film" name="category" value="11" required>
+      <label for="film">Entertainment: Film</label><br>
+      <input type="radio" id="book" name="category" value="10" required>
+      <label for="book">Entertainment: Books</label><br>
+      <input type="radio" id="art" name="category" value="25" required>
+      <label for="art">Art</label> <br/>
+      <input type="radio" id="geo" name="category" value="22" required>
+      <label for="geo">Geography</label>
+      <br/>
+      <input type="number" id="number-question" placeholder="Select number of questions" required>
+      <br/>
+      <div>
+        <label for="level">Select Level:</label>
+        <input type="radio" id="easy" name="level" value="easy" required>
+        <label for="easy">Easy</label>
+        <input type="radio" id="medium" name="level" value="medium" required>
+        <label for="medium">Medium</label>
+        <input type="radio" id="hard" name="level" value="hard" required>
+        <label for="hard">Hard</label>
+      </div>
+      <br/>
+      <button type="submit" onclick="">Register</button>
+    </form>
+    
+    <div id="error-block"></div>
+</div>
+<script src="./quiz.js"></script>
+</body>
+</html>
